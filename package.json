@@ -14,7 +14,7 @@
     "copy-webpack-plugin": "^6.3.2",
     "dat.gui": "^0.7.7",
     "dragonbones-converter": "^1.0.2",
-    "egret-webpack-tools": "^1.0.2",
+    "egret-webpack-tools": "^1.0.3",
     "file-loader": "^6.2.0",
     "filesaver": "0.0.13",
     "fork-ts-checker-webpack-plugin": "^6.0.4",

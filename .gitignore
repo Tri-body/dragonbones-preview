@@ -1,10 +1,10 @@
 .wing
 bin-debug
 bin-release
-libs/modules
 polyfill
 .vscode
 egret-core
 .DS_Store
 package-lock.json
 node_modules
+dist
