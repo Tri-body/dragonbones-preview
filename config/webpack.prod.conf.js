@@ -14,7 +14,6 @@ const {
   EgretWebpackPlugin
 } = require('egret-webpack-tools')
 
-
 const defineVars = {}
 
 let webpackConfig = merge(baseWebpackConfig, {
@@ -27,18 +26,18 @@ let webpackConfig = merge(baseWebpackConfig, {
   },
   optimization: {
     // runtimeChunk: 'single',
-    minimize: false,
-    splitChunks: {
-      cacheGroups: {
-        vendors: {
-          name: 'vendors',
-          chunks: 'initial',
-          minChunks: 1,
-          priority: -10,
-          test: /[\\/]node_modules[\\/]/
-        }
-      }
-    }
+    minimize: true,
+    // splitChunks: {
+    //   cacheGroups: {
+    //     vendors: {
+    //       name: 'vendors',
+    //       chunks: 'initial',
+    //       minChunks: 1,
+    //       priority: -10,
+    //       test: /[\\/]node_modules[\\/]/
+    //     }
+    //   }
+    // }
   },
   plugins: [
     new webpack.DefinePlugin(defineVars),
@@ -48,7 +47,7 @@ let webpackConfig = merge(baseWebpackConfig, {
       filename: 'index.html',
       template: path.resolve(__dirname, '../template/web/index.html'),
       // chunksSortMode: 'dependency',
-      inject: false,
+      inject: true,
       favicon: path.resolve(__dirname, '../favicon.ico'),
       minify: {
         collapseWhitespace: true,

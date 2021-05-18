@@ -1,4 +1,5 @@
 import { App } from "./App";
+import { runEgret } from "./runEgret";
 
 class Main extends egret.DisplayObjectContainer {
 
@@ -37,3 +38,6 @@ class Main extends egret.DisplayObjectContainer {
 }
 
 window['Main'] = Main
+window.onload = () => {
+    runEgret()
+}

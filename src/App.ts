@@ -38,6 +38,7 @@ export class App extends egret.DisplayObjectContainer {
             this.loadFile(e.dataTransfer.files[0]);
         }
         this.initUI();
+        this.initVscEx();
     }
 
     private initUI() {
@@ -90,6 +91,25 @@ export class App extends egret.DisplayObjectContainer {
         this.addChildAt(this._stageBg, 0)
         this.stage.addEventListener(egret.Event.RESIZE, this.onResize, this)
         this.onResize()
+    }
+
+    private initVscEx() {
+        if (typeof window['acquireVsCodeApi'] === 'function') {
+            var vscode = window['acquireVsCodeApi']()
+            window.addEventListener('message', event => {
+                const data = event.data || {}
+                switch (data.type) {
+                    case 'select_file':
+                        this.loadUrl(data.uri, 'preview')
+                        break;
+                    default:
+                        break;
+                }
+            })
+            vscode.postMessage({
+                type: 'onload'
+            })
+        }
     }
 
     private moveX(val: number) {
