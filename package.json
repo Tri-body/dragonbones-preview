@@ -1,0 +1,39 @@
+{
+  "name": "dragonbones-preview",
+  "version": "1.0.0",
+  "description": "preview tool for dragonbones zip file",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/dat.gui": "^0.7.6",
+    "@types/filesaver": "0.0.30",
+    "case-sensitive-paths-webpack-plugin": "^2.3.0",
+    "clean-webpack-plugin": "^3.0.0",
+    "copy-webpack-plugin": "^6.3.2",
+    "dat.gui": "^0.7.7",
+    "dragonbones-converter": "^1.0.2",
+    "egret-webpack-tools": "^1.0.2",
+    "file-loader": "^6.2.0",
+    "filesaver": "0.0.13",
+    "fork-ts-checker-webpack-plugin": "^6.0.4",
+    "friendly-errors-webpack-plugin": "^1.7.0",
+    "html-webpack-plugin": "^4.5.0",
+    "jszip": "^3.6.0",
+    "loader-utils": "^2.0.0",
+    "node-notifier": "^8.0.0",
+    "portfinder": "^1.0.28",
+    "ts-loader": "^8.0.11",
+    "typescript": "^4.1.2",
+    "url-loader": "^4.1.1",
+    "webpack": "^4.44.2",
+    "webpack-cli": "^4.2.0",
+    "webpack-dev-server": "^3.11.0",
+    "webpack-merge": "^5.4.0"
+  },
+  "scripts": {
+    "dev": "webpack serve --inline --progress --config config/webpack.dev.conf.js",
+    "build": "webpack --config config/webpack.prod.conf.js"
+  }
+}
