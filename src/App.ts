@@ -1,6 +1,7 @@
 import { DragonBonesItem } from "./dragonbones/DragonBonesItem";
 import { SkeletonMovie } from "./dragonbones/SkeletonMovie";
 import { GUI } from 'dat.gui'
+import { decode } from "./base64";
 
 export class App extends egret.DisplayObjectContainer {
 
@@ -99,15 +100,15 @@ export class App extends egret.DisplayObjectContainer {
             window.addEventListener('message', event => {
                 const data = event.data || {}
                 switch (data.type) {
-                    case 'select_file':
-                        this.loadUrl(data.uri, 'preview')
+                    case 'open_file':
+                        this.loadBase64(data.content, 'preview')
                         break;
                     default:
                         break;
                 }
             })
             vscode.postMessage({
-                type: 'onload'
+                type: 'preview_ready'
             })
         }
     }
@@ -208,6 +209,18 @@ export class App extends egret.DisplayObjectContainer {
             option = document.createElement('option');
             option.text = value;
             ctrl['__select'].add(option);
+        }
+    }
+
+    private loadBase64(data: string, name: string): void {
+        if (!this._isLoading && data) {
+            this._isLoading = true;
+            this.cleanFile()
+            const result = decode(data)
+            this._isLoading = false
+            this.realCreate(result, name).catch(reason => {
+                console.error(reason)
+            })
         }
     }
 

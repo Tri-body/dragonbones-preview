@@ -1,6 +1,6 @@
 {
   "name": "dragonbones-preview",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "preview tool for dragonbones zip file",
   "main": "index.js",
   "keywords": [],
@@ -13,7 +13,7 @@
     "clean-webpack-plugin": "^3.0.0",
     "copy-webpack-plugin": "^6.3.2",
     "dat.gui": "^0.7.7",
-    "dragonbones-converter": "^1.0.2",
+    "dragonbones-converter": "^1.0.4",
     "egret-webpack-tools": "^1.0.4",
     "file-loader": "^6.2.0",
     "filesaver": "0.0.13",
