@@ -101,7 +101,7 @@ export class App extends egret.DisplayObjectContainer {
                 const data = event.data || {}
                 switch (data.type) {
                     case 'open_file':
-                        this.loadBase64(data.content, 'preview')
+                        this.loadBase64(data.content, 'preview', data.skNames, data.texNames, data.texaNames)
                         break;
                     default:
                         break;
@@ -212,13 +212,13 @@ export class App extends egret.DisplayObjectContainer {
         }
     }
 
-    private loadBase64(data: string, name: string): void {
+    private loadBase64(data: string, name: string, skNames?: string[], texNames?: string[], texAtlasNames?: string[]): void {
         if (!this._isLoading && data) {
             this._isLoading = true;
             this.cleanFile()
             const result = decode(data)
             this._isLoading = false
-            this.realCreate(result, name).catch(reason => {
+            this.realCreate(result, name, skNames, texNames, texAtlasNames).catch(reason => {
                 console.error(reason)
             })
         }
@@ -286,9 +286,9 @@ export class App extends egret.DisplayObjectContainer {
         this.onResize()
     }
 
-    private async realCreate(zipBin: ArrayBuffer, name: string) {
+    private async realCreate(zipBin: ArrayBuffer, name: string, skNames?: string[], texNames?: string[], texAtlasNames?: string[]) {
         this._item = new DragonBonesItem()
-        await this._item.init(zipBin, name, this._toV3)
+        await this._item.init(zipBin, name, this._toV3, skNames, texNames, texAtlasNames)
         this._typeCtrl.setValue(this._item.rawVersion)
         this._armatures = this._item.getArmatureNames()
         this.updateSelectOptions(this._armaturesCtrl, this._armatures)

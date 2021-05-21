@@ -1,8 +1,11 @@
-import { Asset } from "./Asset";
 import { SkeletonMovie } from "./SkeletonMovie";
 import { SkeletonUtil } from "./SkeletonUtil";
 import { DragonBonesXmlUtil, dbToNew } from 'dragonbones-converter'
 import * as JSZip from 'jszip'
+import * as minimatch from 'minimatch'
+import { SKELETON_NAMES, TEXTURE_ATLAS_NAMES, TEXTURE_NAMES } from "./type";
+
+type MatchFile = { ext: string, zip: JSZip.JSZipObject }
 
 export class DragonBonesItem {
 
@@ -15,52 +18,97 @@ export class DragonBonesItem {
   private _version: string
   private _isBinData: boolean
 
-  public async init(zipRawData: any, key: string, toV3: boolean = false) {
+  public async init(zipRawData: any, key: string, toV3: boolean = false, skNames?: string[], texNames?: string[], texAtlasNames?: string[]) {
     this.dispose();
     this._key = key;
     const zip = await JSZip.loadAsync(zipRawData);
 
-    let zipObj: JSZip.JSZipObject
+
+    skNames = skNames || SKELETON_NAMES
+    texNames = texNames || TEXTURE_NAMES
+    texAtlasNames = texAtlasNames || TEXTURE_ATLAS_NAMES
+
+    const matchFiles = this.findMatchFiles(zip, skNames, texNames, texAtlasNames)
+
+    console.log(matchFiles)
 
     //texture data
-    if (zipObj = zip.file(Asset.TEXTURE_JSON) || this.findFileBySuffix(zip, Asset.TEX_JSON)) {
-      const texJsonStr = await zipObj.async('text')
-      this._textureJson = JSON.parse(texJsonStr);
-    } else if (zipObj = zip.file(Asset.TEXTURE_XML)) {
-      const texXmlStr = await zipObj.async('text')
-      this._textureJson = DragonBonesXmlUtil.parseXmlStrToJson(texXmlStr)
+    let file = matchFiles.texa
+    if (file) {
+      if (file.ext === '.json') {
+        const texJsonStr = await file.zip.async('text')
+        this._textureJson = JSON.parse(texJsonStr);
+      } else if (file.ext === '.xml') {
+        const texXmlStr = await file.zip.async('text')
+        this._textureJson = DragonBonesXmlUtil.parseXmlStrToJson(texXmlStr)
+      }
     }
 
     //skelton data
-    if (zipObj = zip.file(Asset.SKELETON_JSON) || this.findFileBySuffix(zip, Asset.SKE_JSON)) {
-      const jsonStr = await zipObj.async('text')
-      this._skeletonJson = JSON.parse(jsonStr)
-      this._version = this._skeletonJson['version']
-      if (this._version === '3.3' || this._version === '2.3') {
+    file = matchFiles.sk
+    if (file) {
+      if (file.ext === '.json') {
+        const jsonStr = await file.zip.async('text')
+        this._skeletonJson = JSON.parse(jsonStr)
+        this._version = this._skeletonJson['version']
+        if (this._version === '3.3' || this._version === '2.3') {
+          SkeletonUtil.setAutoTween(this._skeletonJson, false)  // fix回放bug
+        }
+        if (this._version !== '5.5') {
+          this._skeletonJson = dbToNew(this._skeletonJson, this._textureJson)
+        }
+        this._version += 'json'
+      } else if (file.ext === '.dbbin') {
+        this._skeletonJson = await file.zip.async('arraybuffer')
+        this._version = '5.5 binary'
+        this._isBinData = true
+      } else if (file.ext === '.xml') {
+        const xmlStr = await file.zip.async('text')
+        this._skeletonJson = DragonBonesXmlUtil.parseXmlStrToJson(xmlStr, toV3)
+        this._version = '2.3 xml'
         SkeletonUtil.setAutoTween(this._skeletonJson, false)  // fix回放bug
-      }
-      if (this._version !== '5.5') {
         this._skeletonJson = dbToNew(this._skeletonJson, this._textureJson)
       }
-      this._version += ' json'
-    } else if (zipObj = zip.file(Asset.SKELETON_BIN) || this.findFileBySuffix(zip, Asset.SKE_BIN)) {
-      this._skeletonJson = await zipObj.async('arraybuffer')
-      this._version = '5.5 binary'
-      this._isBinData = true
-    } else if (zipObj = zip.file(Asset.SKELETON_XML)) {
-      const xmlStr = await zipObj.async('text')
-      this._skeletonJson = DragonBonesXmlUtil.parseXmlStrToJson(xmlStr, toV3)
-      this._version = '2.3 xml'
-      SkeletonUtil.setAutoTween(this._skeletonJson, false)  // fix回放bug
-      this._skeletonJson = dbToNew(this._skeletonJson, this._textureJson)
     }
 
     // skeleton texture
-    if (zipObj = zip.file(Asset.TEXTURE_PNG) || this.findFileBySuffix(zip, Asset.TEX_PNG)) {
-      const tex = await zipObj.async('arraybuffer')
+    file = matchFiles.tex
+    if (file) {
+      const tex = await file.zip.async('arraybuffer')
       this._textureBmd = await this.createTexture(tex)
     }
 
+  }
+
+  private findMatchFiles(zipObj: JSZip, skNames: string[], texNames: string[], texAtlasNames: string[]) {
+    let sk: MatchFile, tex: MatchFile, texa: MatchFile
+    for (let key in zipObj.files) {
+      if (!sk) {
+        for (let name of skNames) {
+          if (minimatch(key, name)) {
+            sk = { ext: key.substr(key.lastIndexOf('.')).toLocaleLowerCase(), zip: zipObj.file(key) }
+            break;
+          }
+        }
+      }
+      if (!tex) {
+        for (let name of texNames) {
+          if (minimatch(key, name)) {
+            tex = { ext: key.substr(key.lastIndexOf('.')).toLocaleLowerCase(), zip: zipObj.file(key) }
+            break;
+          }
+        }
+      }
+      if (!texa) {
+        for (let name of texAtlasNames) {
+          if (minimatch(key, name)) {
+            texa = { ext: key.substr(key.lastIndexOf('.')).toLocaleLowerCase(), zip: zipObj.file(key) }
+            break;
+          }
+        }
+      }
+    }
+    return { sk, tex, texa }
   }
 
   private findFileBySuffix(zip: JSZip, suffix: string) {

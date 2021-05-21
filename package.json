@@ -1,6 +1,6 @@
 {
   "name": "dragonbones-preview",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "preview tool for dragonbones zip file",
   "main": "index.js",
   "keywords": [],
@@ -36,5 +36,8 @@
   "scripts": {
     "dev": "webpack serve --inline --progress --config config/webpack.dev.conf.js",
     "build": "webpack --config config/webpack.prod.conf.js"
+  },
+  "dependencies": {
+    "minimatch": "^3.0.4"
   }
 }

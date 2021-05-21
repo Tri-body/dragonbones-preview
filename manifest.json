@@ -9,6 +9,7 @@
     "libs/modules/promise/promise.js"
   ],
   "game": [
-    "main.js"
+    "main.js",
+    "main.01642fd9639f6030c36a.hot-update.js"
   ]
 }
