@@ -23,14 +23,13 @@ export class DragonBonesItem {
     this._key = key;
     const zip = await JSZip.loadAsync(zipRawData);
 
-
     skNames = skNames || SKELETON_NAMES
     texNames = texNames || TEXTURE_NAMES
     texAtlasNames = texAtlasNames || TEXTURE_ATLAS_NAMES
 
     const matchFiles = this.findMatchFiles(zip, skNames, texNames, texAtlasNames)
 
-    console.log(matchFiles)
+    // console.log(matchFiles)
 
     //texture data
     let file = matchFiles.texa
@@ -78,6 +77,10 @@ export class DragonBonesItem {
       this._textureBmd = await this.createTexture(tex)
     }
 
+    if (!this._skeletonJson || !this._textureJson || !this._textureBmd) {
+      throw `[${this.name}] parse faild, check this file is dragonboens zip`;
+    }
+
   }
 
   private findMatchFiles(zipObj: JSZip, skNames: string[], texNames: string[], texAtlasNames: string[]) {
@@ -111,15 +114,6 @@ export class DragonBonesItem {
     return { sk, tex, texa }
   }
 
-  private findFileBySuffix(zip: JSZip, suffix: string) {
-    for (let key in zip.files) {
-      if (key.charAt(0) !== '.' && key.substr(-suffix.length) === suffix) {
-        return zip.file(key)
-      }
-    }
-    return null
-  }
-
   private createTexture(data: ArrayBuffer): Promise<egret.BitmapData> {
     return new Promise((resolve: Function) => {
       egret.BitmapData.create('arraybuffer', data, bmd => {
@@ -138,7 +132,7 @@ export class DragonBonesItem {
         this._factory.parseTextureAtlasData(this._textureJson, texture);
         return this._factory;
       } else {
-        egret.error(`create EgretFactory fail!`);
+        throw 'create EgretFactory fail!';
       }
     }
     return this._factory;

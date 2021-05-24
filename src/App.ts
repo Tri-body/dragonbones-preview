@@ -24,6 +24,7 @@ export class App extends egret.DisplayObjectContainer {
     private _scaleCtrl: dat.GUIController
     private _typeCtrl: dat.GUIController
     private _sizeCtrl: dat.GUIController
+    private _vscode: any
 
     constructor() {
         super()
@@ -72,7 +73,7 @@ export class App extends egret.DisplayObjectContainer {
         this._typeCtrl = gui.add(controls, 'type').name('格式')
         this._sizeCtrl = gui.add(controls, 'size').name('尺寸')
         gui.addColor(controls, 'bgColor').name('底色').onChange(this.changeStageBgClr.bind(this))
-        gui.add(controls, 'toV3').name('转换V3').onChange(this.setV3.bind(this))
+        gui.add(controls, 'toV3').name('2.3转3.0').onChange(this.setV3.bind(this))
 
         document.onkeydown = (e: KeyboardEvent) => {
             if (!this._movie) return false
@@ -96,19 +97,26 @@ export class App extends egret.DisplayObjectContainer {
 
     private initVscEx() {
         if (typeof window['acquireVsCodeApi'] === 'function') {
-            var vscode = window['acquireVsCodeApi']()
+            this._vscode = window['acquireVsCodeApi']()
             window.addEventListener('message', event => {
                 const data = event.data || {}
                 switch (data.type) {
                     case 'open_file':
-                        this.loadBase64(data.content, 'preview', data.skNames, data.texNames, data.texaNames)
+                        this.loadBase64(data.content, data.filename, data.skNames, data.texNames, data.texaNames)
                         break;
                     default:
                         break;
                 }
             })
-            vscode.postMessage({
-                type: 'preview_ready'
+            this.sendVscodeMsg('preview_ready')
+        }
+    }
+
+    private sendVscodeMsg(type: string, data?: any) {
+        if (this._vscode) {
+            this._vscode.postMessage({
+                type,
+                data
             })
         }
     }
@@ -219,23 +227,7 @@ export class App extends egret.DisplayObjectContainer {
             const result = decode(data)
             this._isLoading = false
             this.realCreate(result, name, skNames, texNames, texAtlasNames).catch(reason => {
-                console.error(reason)
-            })
-        }
-    }
-
-    private loadUrl(url: string, name: string): void {
-        if (!this._isLoading && url) {
-            this._isLoading = true;
-            this.cleanFile()
-            App.loadBinary(url).then(result => {
-                this._isLoading = false
-                this.realCreate(result, name).catch(reason => {
-                    console.error(reason)
-                })
-            }).catch(reason => {
-                this._isLoading = false
-                console.error(reason);
+                this.showError('' + reason)
             })
         }
     }
@@ -248,12 +240,13 @@ export class App extends egret.DisplayObjectContainer {
             reader.onload = (e: Event) => {
                 this._isLoading = false
                 this.realCreate(reader.result as ArrayBuffer, file.name).catch(reason => {
-                    console.error(reason)
+                    this.showError('' + reason)
                 })
+
             };
             reader.onerror = (e: Event) => {
                 this._isLoading = false
-                console.error('' + e);
+                this.showError('' + e)
             };
             reader.readAsArrayBuffer(file);
         }
@@ -366,53 +359,15 @@ export class App extends egret.DisplayObjectContainer {
         }
     }
 
-    static loadBinary(url: string) {
-        return new Promise<ArrayBuffer>(function (resolve: Function, reject: Function) {
-            const xhr = new XMLHttpRequest()
-            xhr.open('GET', url, true)
-            xhr.responseType = 'arraybuffer'
-            xhr.onload = function () {
-                xhr.onload = undefined
-                xhr.onerror = undefined
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    resolve(xhr.response)
-                } else {
-                    reject({
-                        status: xhr.status,
-                        statusText: xhr.statusText
-                    })
-                }
-            }
-            xhr.onerror = function () {
-                xhr.onload = undefined
-                xhr.onerror = undefined
-                reject({
-                    status: xhr.status,
-                    statusText: xhr.statusText
-                })
-            }
-            xhr.send()
-        })
-    }
-
-    static parseResUrl(prefix: string, name: string): string {
-        if (!prefix || !name) {
-            return name
-        }
-        return prefix + name.substring(0, 3) + '/' + name + '/1024x768/skeleton.zip'
-    }
-
-    static getUrlParameter(name) {
-        name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
-        var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
-        var results = regex.exec(location.search);
-        return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
-    }
-
     showFps(): void {
         const list = document.querySelectorAll('.egret-player')
         if (list && list[0] && list[0]['egret-player']) {
             list[0]['egret-player'].player.displayFPS(true, undefined, undefined, { bgAlpha: '0.3', size: 12, textColor: '0xffffff', x: 1, y: 1 })
         }
+    }
+
+    private showError(msg: string) {
+        this.sendVscodeMsg('error_msg', msg)
+        console.error(msg)
     }
 }
