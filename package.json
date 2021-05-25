@@ -1,6 +1,6 @@
 {
   "name": "dragonbones-preview",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "preview tool for dragonbones zip file",
   "main": "index.js",
   "keywords": [],

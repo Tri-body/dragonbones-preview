@@ -24,6 +24,8 @@ export class App extends egret.DisplayObjectContainer {
     private _scaleCtrl: dat.GUIController
     private _typeCtrl: dat.GUIController
     private _sizeCtrl: dat.GUIController
+    private _posXCtrl: dat.GUIController
+    private _posYCtrl: dat.GUIController
     private _vscode: any
 
     constructor() {
@@ -58,7 +60,9 @@ export class App extends egret.DisplayObjectContainer {
             bgColor: '#000000',
             type: '',
             size: '',
-            toV3: false
+            toV3: false,
+            offsetX: 0,
+            offsetY: 0,
 
         }
         this._playCtrl = gui.add(controls, 'btnPlay').name('播放')
@@ -74,6 +78,8 @@ export class App extends egret.DisplayObjectContainer {
         this._sizeCtrl = gui.add(controls, 'size').name('尺寸')
         gui.addColor(controls, 'bgColor').name('底色').onChange(this.changeStageBgClr.bind(this))
         gui.add(controls, 'toV3').name('2.3转3.0').onChange(this.setV3.bind(this))
+        this._posXCtrl = gui.add(controls, 'offsetX', -500, 500, 10).name('posX').onChange(this.setX.bind(this))
+        this._posYCtrl = gui.add(controls, 'offsetY', -500, 500, 10).name('posY').onChange(this.setY.bind(this))
 
         document.onkeydown = (e: KeyboardEvent) => {
             if (!this._movie) return false
@@ -121,15 +127,29 @@ export class App extends egret.DisplayObjectContainer {
         }
     }
 
+    private setX(val: number) {
+        if (this._movie) {
+            this._movie.x = val
+        }
+    }
+
+    private setY(val: number) {
+        if (this._movie) {
+            this._movie.y = val
+        }
+    }
+
     private moveX(val: number) {
         if (this._movie) {
             this._movie.x += val
+            this._posXCtrl.setValue(this._movie.x)
         }
     }
 
     private moveY(val: number) {
         if (this._movie) {
             this._movie.y += val
+            this._posYCtrl.setValue(this._movie.y)
         }
     }
 
@@ -272,6 +292,8 @@ export class App extends egret.DisplayObjectContainer {
             this._bg = null
         }
         this._scaleCtrl.setValue(1)
+        this._posXCtrl.setValue(0)
+        this._posYCtrl.setValue(0)
         if (this._item) {
             this._item.dispose()
             this._item = null
